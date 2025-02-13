@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const originalCode = document.getElementById('originalCode');
     const documentation = document.getElementById('documentation');
     const copyDocBtn = document.getElementById('copyDocBtn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
     const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
     const errorMessage = document.getElementById('errorMessage');
 
@@ -68,6 +69,53 @@ document.addEventListener('DOMContentLoaded', function() {
             generateBtn.disabled = false;
             generateBtn.classList.remove('pulse');
             spinner.classList.add('d-none');
+        }
+    });
+
+    downloadPdfBtn.addEventListener('click', async function() {
+        try {
+            downloadPdfBtn.disabled = true;
+            downloadPdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+
+            const response = await fetch('/download-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    documentation: documentation.innerText
+                })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to generate PDF');
+            }
+
+            // Get the PDF blob
+            const blob = await response.blob();
+
+            // Create a download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'documentation.pdf';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            // Show success state
+            downloadPdfBtn.innerHTML = '<i class="fas fa-check"></i> Downloaded! ✅';
+            setTimeout(() => {
+                downloadPdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
+                downloadPdfBtn.disabled = false;
+            }, 2000);
+
+        } catch (error) {
+            showError('Error downloading PDF: ' + error.message + ' ❌');
+            downloadPdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
+            downloadPdfBtn.disabled = false;
         }
     });
 

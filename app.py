@@ -4,8 +4,9 @@ from werkzeug.utils import secure_filename
 import logging
 from doc_generator import generate_documentation
 import tempfile
-import zipfile
+import pdfkit
 from io import BytesIO
+import markdown
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -36,43 +37,50 @@ def get_file_language(filename):
 def index():
     return render_template('index.html')
 
-@app.route('/download-project')
-def download_project():
+@app.route('/download-pdf', methods=['POST'])
+def download_pdf():
     try:
-        # Create a BytesIO object to store the zip file
-        memory_file = BytesIO()
+        # Get markdown content from request
+        markdown_content = request.json.get('documentation')
+        if not markdown_content:
+            return jsonify({'error': 'No documentation provided'}), 400
 
-        with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
-            # List of directories to include
-            dirs_to_include = ['templates', 'static']
-            files_to_include = ['app.py', 'doc_generator.py', 'main.py']
+        # Convert markdown to HTML
+        html_content = markdown.markdown(markdown_content)
 
-            # Add directories
-            for dir_name in dirs_to_include:
-                for root, dirs, files in os.walk(dir_name):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        arcname = file_path  # Keep the directory structure
-                        zf.write(file_path, arcname)
+        # Add some basic styling
+        styled_html = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                code {{ background-color: #f5f5f5; padding: 2px 4px; border-radius: 4px; }}
+                pre {{ background-color: #f5f5f5; padding: 15px; border-radius: 8px; }}
+                h1, h2, h3 {{ color: #333; }}
+            </style>
+        </head>
+        <body>
+            {html_content}
+        </body>
+        </html>
+        """
 
-            # Add individual files
-            for file_name in files_to_include:
-                if os.path.exists(file_name):
-                    zf.write(file_name)
+        # Generate PDF
+        pdf = pdfkit.from_string(styled_html, False)
 
-        # Seek to the beginning of the BytesIO object
-        memory_file.seek(0)
-
-        return send_file(
-            memory_file,
-            mimetype='application/zip',
+        # Create response
+        response = send_file(
+            BytesIO(pdf),
+            mimetype='application/pdf',
             as_attachment=True,
-            download_name='python-doc-generator.zip'
+            download_name='documentation.pdf'
         )
 
+        return response
+
     except Exception as e:
-        logging.error(f"Error creating zip file: {str(e)}")
-        return jsonify({'error': 'Error creating download package'}), 500
+        logging.error(f"Error generating PDF: {str(e)}")
+        return jsonify({'error': 'Error generating PDF'}), 500
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
