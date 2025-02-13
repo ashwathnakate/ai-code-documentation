@@ -7,8 +7,7 @@ import google.generativeai as genai
 logging.basicConfig(level=logging.DEBUG)
 
 # Configure Gemini API
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-genai.configure(api_key=GOOGLE_API_KEY)
+genai.configure(api_key='AIzaSyBCedpSFcr_YxakJftW0jWMtP44jBMnms4')
 
 def parse_python_code(code):
     """Parse Python code and extract basic information."""
