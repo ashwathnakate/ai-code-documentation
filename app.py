@@ -4,6 +4,8 @@ from werkzeug.utils import secure_filename
 import logging
 from doc_generator import generate_documentation
 import tempfile
+import zipfile
+from io import BytesIO
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -33,6 +35,44 @@ def get_file_language(filename):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/download-project')
+def download_project():
+    try:
+        # Create a BytesIO object to store the zip file
+        memory_file = BytesIO()
+
+        with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+            # List of directories to include
+            dirs_to_include = ['templates', 'static']
+            files_to_include = ['app.py', 'doc_generator.py', 'main.py']
+
+            # Add directories
+            for dir_name in dirs_to_include:
+                for root, dirs, files in os.walk(dir_name):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        arcname = file_path  # Keep the directory structure
+                        zf.write(file_path, arcname)
+
+            # Add individual files
+            for file_name in files_to_include:
+                if os.path.exists(file_name):
+                    zf.write(file_name)
+
+        # Seek to the beginning of the BytesIO object
+        memory_file.seek(0)
+
+        return send_file(
+            memory_file,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name='python-doc-generator.zip'
+        )
+
+    except Exception as e:
+        logging.error(f"Error creating zip file: {str(e)}")
+        return jsonify({'error': 'Error creating download package'}), 500
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
