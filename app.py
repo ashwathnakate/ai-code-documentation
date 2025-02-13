@@ -1,12 +1,9 @@
 import os
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
 import logging
 from doc_generator import generate_documentation
 import tempfile
-import pdfkit
-from io import BytesIO
-import markdown
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -36,51 +33,6 @@ def get_file_language(filename):
 @app.route('/')
 def index():
     return render_template('index.html')
-
-@app.route('/download-pdf', methods=['POST'])
-def download_pdf():
-    try:
-        # Get markdown content from request
-        markdown_content = request.json.get('documentation')
-        if not markdown_content:
-            return jsonify({'error': 'No documentation provided'}), 400
-
-        # Convert markdown to HTML
-        html_content = markdown.markdown(markdown_content)
-
-        # Add some basic styling
-        styled_html = f"""
-        <html>
-        <head>
-            <style>
-                body {{ font-family: Arial, sans-serif; margin: 40px; }}
-                code {{ background-color: #f5f5f5; padding: 2px 4px; border-radius: 4px; }}
-                pre {{ background-color: #f5f5f5; padding: 15px; border-radius: 8px; }}
-                h1, h2, h3 {{ color: #333; }}
-            </style>
-        </head>
-        <body>
-            {html_content}
-        </body>
-        </html>
-        """
-
-        # Generate PDF
-        pdf = pdfkit.from_string(styled_html, False)
-
-        # Create response
-        response = send_file(
-            BytesIO(pdf),
-            mimetype='application/pdf',
-            as_attachment=True,
-            download_name='documentation.pdf'
-        )
-
-        return response
-
-    except Exception as e:
-        logging.error(f"Error generating PDF: {str(e)}")
-        return jsonify({'error': 'Error generating PDF'}), 500
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
