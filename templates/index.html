@@ -5,11 +5,15 @@
     <div class="col-md-12 mb-4">
         <div class="card">
             <div class="card-body">
-                <h2 class="card-title mb-4">Python Documentation Generator</h2>
+                <h2 class="card-title mb-4">Code Documentation Generator</h2>
+                <p class="text-muted mb-4">Upload your source code files and get comprehensive documentation generated using AI.</p>
                 <form id="uploadForm" class="mb-4">
                     <div class="mb-3">
-                        <label for="fileInput" class="form-label">Upload Python File</label>
-                        <input type="file" class="form-control" id="fileInput" accept=".py" required>
+                        <label for="fileInput" class="form-label">Upload Source Code File</label>
+                        <input type="file" class="form-control" id="fileInput" accept=".py,.java,.cpp,.js" required>
+                        <div class="form-text text-muted">
+                            Supported languages: Python (.py), Java (.java), C++ (.cpp), JavaScript (.js)
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary" id="generateBtn">
                         <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
@@ -32,7 +36,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-6 mb-4">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
