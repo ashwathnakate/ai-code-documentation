@@ -118,4 +118,4 @@ Happy coding! 🚀🎉
 
 ---
 
-Developed my [Github Link](https://github.com/ashwathnakate)
+Developed by [Github Link](https://github.com/ashwathnakate)
