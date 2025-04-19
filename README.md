@@ -1,4 +1,4 @@
-# 📝 Code Documentation Generator Web App 🚀
+# 📝 Code Documentation Generator 🚀
 
 This project is a Flask-based web application that allows users to upload code files in Python, Java, C++, or JavaScript and generates automated documentation for the uploaded code.
 
